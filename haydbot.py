@@ -96,12 +96,14 @@ async def on_ready():
         elif menu == 'messaging':
             load_msgs(await channel.history(limit=10).flatten(), guild, channel)
             input_text = await ainput('')
-            if input_text == '\\q':
-                await bot.close()
-                break
-            if input_text == '\\l':
-                menu = 'channels'
-                continue
+            if input_text[0] == '\\':
+                args = input_text[1:].split()
+                if args[0] == 'q':
+                    await bot.close()
+                    break
+                if args[0] == 'l':
+                    menu = 'channels'
+                    continue
             await channel.send(input_text)
 
 @bot.event
