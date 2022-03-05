@@ -17,94 +17,6 @@ messages = []
 cache_history = []
 unread_channels = []
 
-def load_guilds():
-    global guild, unread_channels
-    try:
-        selection = bot.guilds.index(guild)
-    except ValueError:
-        selection = -1
-
-    guild_scroll = 0
-
-    while True:
-        if selection < 0:
-            selection = len(bot.guilds) - 1
-        if selection >= len(bot.guilds):
-            selection = 0
-        
-        if selection < guild_scroll:
-            guild_scroll = selection
-        if selection > guild_scroll + 10:
-            guild_scroll = selection - 10
-            
-        os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-        print(f'{Fore.GREEN}? Select server {Fore.RESET}({selection+1}/{len(bot.guilds)})\n')
-        for i, guild in enumerate(bot.guilds):
-            if i < guild_scroll or i > guild_scroll + 10:
-                continue
-                
-            if selection == i:
-                print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
-            elif guild in [channel.guild for channel in unread_channels]:
-                print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
-            else:
-                print('  ' + guild.name)
-
-        input_char = getch.impl()
-
-        if input_char == 'd':
-            return bot.guilds[selection], 'channels'
-
-        if input_char == 'w':
-            selection -= 1
-        if input_char == 's':
-            selection += 1
-
-def load_channels(guild):
-    global channel, unread_channels
-    try:
-        selection = guild.text_channels.index(channel)
-    except ValueError:
-        selection = -1
-
-    channel_scroll = 0
-
-    while True:
-        if selection < 0:
-            selection = len(guild.text_channels) - 1
-        if selection >= len(guild.text_channels):
-            selection = 0
-        
-        if selection < channel_scroll:
-            channel_scroll = selection
-        if selection > channel_scroll + 10:
-            channel_scroll = selection - 10
-
-        os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-        print(f'{Fore.GREEN}? Select channel {Fore.RESET}({selection+1}/{len(guild.text_channels)})\n')
-        for i, channel in enumerate(guild.text_channels):
-            if i < channel_scroll or i > channel_scroll + 10:
-                continue
-            
-            if selection == i:
-                print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
-            elif channel in unread_channels:
-                print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
-            else:
-                print('  ' + channel.name)
-
-        input_char = getch.impl()
-
-        if input_char == 'd':
-            return guild.text_channels[selection], 'messaging'
-        if input_char == 'a':
-            return guild.text_channels[selection], 'guilds'
-
-        if input_char == 'w':
-            selection -= 1
-        if input_char == 's':
-            selection += 1
-
 def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
@@ -126,19 +38,117 @@ async def on_ready():
     global menu, guild, channel, scroll, cache_history
     while True:
         if menu == 'guilds':
-            guild, menu = load_guilds()
+            try:
+                selection = bot.guilds.index(guild)
+            except ValueError:
+                selection = -1
+
+            guild_scroll = 0
+
+            while True:
+                if selection < 0:
+                    selection = len(bot.guilds) - 1
+                if selection >= len(bot.guilds):
+                    selection = 0
+                
+                if selection < guild_scroll:
+                    guild_scroll = selection
+                if selection > guild_scroll + 10:
+                    guild_scroll = selection - 10
+                    
+                os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+                print(f'{Fore.GREEN}? Select server {Fore.RESET}({selection+1}/{len(bot.guilds)})\n')
+                for i, guild in enumerate(bot.guilds):
+                    if i < guild_scroll or i > guild_scroll + 10:
+                        continue
+                        
+                    if selection == i:
+                        print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
+                    elif guild in [channel.guild for channel in unread_channels]:
+                        print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
+                    else:
+                        print('  ' + guild.name)
+
+                input_char = await agetch()
+
+                if input_char == 'd':
+                    guild = bot.guilds[selection]
+                    menu = 'channels'
+                    break
+
+                if input_char == 'w':
+                    selection -= 1
+                if input_char == 's':
+                    selection += 1
+                
+                if input_char == 'q':
+                    await bot.close()
+                    return
+
         if menu == 'channels':
-            channel, menu = load_channels(guild)
+            try:
+                selection = guild.text_channels.index(channel)
+            except ValueError:
+                selection = -1
+
+            channel_scroll = 0
+
+            while True:
+                if selection < 0:
+                    selection = len(guild.text_channels) - 1
+                if selection >= len(guild.text_channels):
+                    selection = 0
+                
+                if selection < channel_scroll:
+                    channel_scroll = selection
+                if selection > channel_scroll + 10:
+                    channel_scroll = selection - 10
+
+                os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+                print(f'{Fore.GREEN}? Select channel {Fore.RESET}({selection+1}/{len(guild.text_channels)})\n')
+                for i, channel in enumerate(guild.text_channels):
+                    if i < channel_scroll or i > channel_scroll + 10:
+                        continue
+                    
+                    if selection == i:
+                        print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
+                    elif channel in unread_channels:
+                        print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
+                    else:
+                        print('  ' + channel.name)
+
+                input_char = await agetch()
+
+                if input_char == 'd':
+                    channel = guild.text_channels[selection]
+                    menu = 'messaging'
+                    break
+                if input_char == 'a':
+                    channel = guild.text_channels[selection]
+                    menu = 'guilds'
+                    break
+
+                if input_char == 'w':
+                    selection -= 1
+                if input_char == 's':
+                    selection += 1
+                
+                if input_char == 'q':
+                    await bot.close()
+                    return
+
             if menu == 'messaging':
                 scroll = 0
                 cache_history = await channel.history().flatten()
                 if channel in unread_channels: unread_channels.remove(channel)
+
         elif menu == 'messaging':
             load_msgs(cache_history, channel)
             input_char = await agetch()
             if input_char == 'q':
                 await bot.close()
-                break
+                return
+                
             elif input_char == 'a':
                 menu = 'channels'
             elif input_char == 'w':
@@ -147,6 +157,7 @@ async def on_ready():
             elif input_char == 's':
                 scroll -= 1
                 if scroll <= 0: scroll = 0
+
             elif input_char == 't':
                 menu = 'typing'
                 print(f'\r {Fore.BLUE}>{Fore.RESET} ', end='')
