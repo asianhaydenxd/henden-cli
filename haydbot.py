@@ -17,7 +17,6 @@ messages = []
 cache_history = []
 unread_messages = []
 
-# TODO: display where notification messages begin and end
 def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
