@@ -175,15 +175,15 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     global menu, guild, scroll, cache_history, unread_channels
-    if menu == 'messaging' and message.channel == channel:
-        if scroll > 0: scroll += 1
-        cache_history = await channel.history().flatten()
-        load_msgs(cache_history, channel)
-    elif menu == 'messaging':
-        load_msgs(cache_history, channel)
-    elif message.channel not in unread_channels:
+    if message.channel != channel and message.channel not in unread_channels:
         unread_channels.append(message.channel)
 
+    if menu == 'messaging':
+        if message.channel == channel:
+            if scroll > 0: scroll += 1
+            cache_history = await channel.history().flatten()
+
+        load_msgs(cache_history, channel)
 
 async def ainput() -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
