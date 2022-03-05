@@ -14,6 +14,7 @@ menu = 'guilds'
 guild = channel = None
 scroll = 0
 messages = []
+cache_history = []
 
 def load_guilds():
     global guild
@@ -80,7 +81,7 @@ def load_channels(guild):
 def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
-    for message in reversed(messages):
+    for message in reversed(messages[scroll:scroll+10]):
         print(f'\r{Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
     print(f'\r\n {Fore.BLUE}>{Fore.RESET} ', end='')
 
@@ -88,14 +89,15 @@ def load_msgs(messages, channel):
 async def on_ready():
     print('Initiated HaydBot')
 
-    global menu, guild, channel, scroll
+    global menu, guild, channel, scroll, cache_history
     while True:
         if menu == 'guilds':
             guild, menu = load_guilds()
         if menu == 'channels':
             channel, menu = load_channels(guild)
+            cache_history = await channel.history().flatten()
         elif menu == 'messaging':
-            load_msgs((await channel.history(limit=10+scroll).flatten())[scroll:], channel)
+            load_msgs(cache_history, channel)
             input_char = await agetch()
             if input_char == 'q':
                 await bot.close()
@@ -113,10 +115,11 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    global menu, guild, scroll
+    global menu, guild, scroll, cache_history
     if menu == 'messaging':
         if scroll > 0: scroll += 1
-        load_msgs((await channel.history(limit=10+scroll).flatten())[scroll:], channel)
+        cache_history = await channel.history().flatten()
+        load_msgs(cache_history, channel)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
