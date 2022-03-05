@@ -15,20 +15,21 @@ guild = channel = None
 scroll = 0
 messages = []
 cache_history = []
-unread_channels = []
+unread_messages = []
 
 # TODO: display where notification messages begin and end
 def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
 
-    if unread_channels:
-        print(f'\r{Fore.GREEN}! {unread_channels[-1].guild.name}{Fore.YELLOW}/{Fore.GREEN}{unread_channels[-1].name} {unread_channels[-1].last_message.author.name}: {Fore.YELLOW}{unread_channels[-1].last_message.content}{Fore.RESET}')
+    if [message for message in unread_messages if message.channel != channel]:
+        last_foreign_message = [message for message in unread_messages if message.channel != channel][-1]
+        print(f'\r{Fore.GREEN}! {last_foreign_message.guild.name}{Fore.YELLOW}/{Fore.GREEN}{last_foreign_message.channel.name} {last_foreign_message.author.name}: {Fore.YELLOW}{last_foreign_message.content}{Fore.RESET}')
     else:
         print('\r')
 
     for message in reversed(messages[scroll:scroll+10]):
-        print(f'\r{Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
+        print(f'\r{Fore.RED if message in unread_messages else Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {Fore.RED if message in unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
     
     print('\r')
 
@@ -64,11 +65,11 @@ async def on_ready():
                         continue
                         
                     if selection == i:
-                        if guild in [channel.guild for channel in unread_channels]:
-                            print(Fore.BLUE + '> ' + guild.name + ' !' + Fore.RESET)
+                        if guild in [message.guild for message in unread_messages]:
+                            print(Fore.BLUE + '> ' + Fore.GREEN + guild.name + ' !' + Fore.RESET)
                         else:
                             print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
-                    elif guild in [channel.guild for channel in unread_channels]:
+                    elif guild in [message.guild for message in unread_messages]:
                         print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
                     else:
                         print('  ' + guild.name)
@@ -115,11 +116,11 @@ async def on_ready():
                         continue
                     
                     if selection == i:
-                        if channel in unread_channels:
-                            print(Fore.BLUE + '> ' + channel.name + ' !' + Fore.RESET)
+                        if channel in [message.channel for message in unread_messages]:
+                            print(Fore.BLUE + '> ' + Fore.GREEN + channel.name + ' !' + Fore.RESET)
                         else:
                             print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
-                    elif channel in unread_channels:
+                    elif channel in [message.channel for message in unread_messages]:
                         print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
                     else:
                         print('  ' + channel.name)
@@ -147,7 +148,6 @@ async def on_ready():
             if menu == 'messaging':
                 scroll = 0
                 cache_history = await channel.history().flatten()
-                if channel in unread_channels: unread_channels.remove(channel)
 
         elif menu == 'messaging':
             load_msgs(cache_history, channel)
@@ -158,12 +158,19 @@ async def on_ready():
                 
             elif input_char == 'a':
                 menu = 'channels'
+                for message in [message for message in unread_messages if message.channel == channel]:
+                    unread_messages.remove(message)
+
             elif input_char == 'w':
                 scroll += 1
                 if scroll >= len(cache_history) - 10: scroll = len(cache_history) - 10
             elif input_char == 's':
                 scroll -= 1
                 if scroll <= 0: scroll = 0
+
+            elif ord(input_char) == 27:
+                for message in [message for message in unread_messages if message.channel == channel]:
+                    unread_messages.remove(message)
 
             elif input_char == 't':
                 menu = 'typing'
@@ -174,9 +181,9 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    global menu, guild, scroll, cache_history, unread_channels
-    if message.channel != channel and message.channel not in unread_channels:
-        unread_channels.append(message.channel)
+    global menu, guild, scroll, cache_history, unread_messages
+    if message.channel != channel and message not in unread_messages:
+        unread_messages.append(message)
 
     if menu == 'messaging':
         if message.channel == channel:
