@@ -78,11 +78,18 @@ def load_channels(guild):
         if input_char == 's':
             selection += 1
 
-def load_msgs(messages, channel):
+def load_msgs(messages, channel, notif=None):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-    print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
+    print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
+
+    if notif:
+        print(f'\r{Fore.GREEN}! {notif.guild.name}{Fore.YELLOW}/{Fore.GREEN}{notif.channel.name} {notif.author.name}: {Fore.YELLOW}{notif.content}{Fore.RESET}')
+    else:
+        print('\r')
+
     for message in reversed(messages[scroll:scroll+10]):
         print(f'\r{Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
+    
     print(f'\r\n {Fore.BLUE}>{Fore.RESET} ', end='')
 
 @bot.event
@@ -117,9 +124,12 @@ async def on_ready():
 async def on_message(message):
     global menu, guild, scroll, cache_history
     if menu == 'messaging':
-        if scroll > 0: scroll += 1
-        cache_history = await channel.history().flatten()
-        load_msgs(cache_history, channel)
+        if message.channel == channel:
+            if scroll > 0: scroll += 1
+            cache_history = await channel.history().flatten()
+            load_msgs(cache_history, channel)
+        else:
+            load_msgs(cache_history, channel, notif=message)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
