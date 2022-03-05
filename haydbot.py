@@ -76,13 +76,11 @@ def load_channels(guild):
         if input_char == 's':
             selection += 1
 
-def load_msgs(messages, guild, channel, depth):
+def load_msgs(messages, guild, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-    display_messages = [message for message in messages if message['guild'] == guild.name and message['channel'] == channel.name][-depth:]
-    
     print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
-    for message in display_messages:
-        print('%s: %s'%(Fore.BLUE+message['author']+Fore.RESET, message['text']))
+    for message in messages:
+        print('%s: %s'%(Fore.BLUE+message.author.name+Fore.RESET, message.content))
     print(f'\n {Fore.BLUE}>{Fore.RESET} ', end='')
 
 @bot.event
@@ -96,7 +94,7 @@ async def on_ready():
         if menu == 'channels':
             channel, menu = load_channels(guild)
         elif menu == 'messaging':
-            load_msgs(messages, guild, channel, 10)
+            load_msgs(await channel.history(limit=10).flatten(), guild, channel)
             input_text = await ainput('')
             if input_text == '\\q':
                 await bot.close()
@@ -109,9 +107,8 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     global menu, guild
-    messages.append({'guild': message.guild.name, 'channel': message.channel.name, 'author': message.author.name, 'text': message.content})
     if menu == 'messaging':
-        load_msgs(messages, guild, channel, 10)
+        load_msgs(await channel.history(limit=10).flatten(), guild, channel)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
