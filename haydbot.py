@@ -113,8 +113,9 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    global menu, guild
-    if menu == 'messaging' and scroll == 0:
+    global menu, guild, scroll
+    if menu == 'messaging':
+        if scroll > 0: scroll += 1
         load_msgs((await channel.history(limit=10+scroll).flatten())[scroll:], channel)
 
 async def ainput(prompt: str = '') -> str:
