@@ -144,7 +144,7 @@ async def on_ready():
                 print(f'\r {Fore.BLUE}>{Fore.RESET} ', end='')
                 input_text = await ainput()
                 menu = 'messaging'
-                await channel.send(input_text)
+                if input_text: await channel.send(input_text)
 
 @bot.event
 async def on_message(message):
