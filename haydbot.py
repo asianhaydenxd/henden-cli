@@ -157,11 +157,11 @@ async def on_message(message):
         else:
             load_msgs(cache_history, channel, notif=message)
 
-async def ainput(prompt: str = '') -> str:
+async def ainput() -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
         return (await asyncio.get_event_loop().run_in_executor(executor, input)).rstrip()
 
-async def agetch(prompt: str = '') -> str:
+async def agetch() -> str:
     with ThreadPoolExecutor(1, 'agetch') as executor:
         return (await asyncio.get_event_loop().run_in_executor(executor, getch.impl)).rstrip()
 
