@@ -79,8 +79,8 @@ def load_channels(guild):
 def load_msgs(messages, guild, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
-    for message in messages:
-        print('%s: %s'%(Fore.BLUE+message.author.name+Fore.RESET, message.content))
+    for message in reversed(messages):
+        print(f'{Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
     print(f'\n {Fore.BLUE}>{Fore.RESET} ', end='')
 
 @bot.event
