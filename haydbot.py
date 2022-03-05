@@ -101,8 +101,11 @@ async def on_ready():
                 if args[0] == 'q':
                     await bot.close()
                     break
-                if args[0] == 'l':
+                if args[0] == 'c':
                     menu = 'channels'
+                    continue
+                if args[0] == 'g':
+                    menu = 'guilds'
                     continue
             await channel.send(input_text)
 
