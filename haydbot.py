@@ -12,6 +12,7 @@ bot = commands.Bot(command_prefix = 'hb ')
 getch = Getch()
 menu = 'guilds'
 guild = channel = None
+scroll = 0
 messages = []
 
 def load_guilds():
@@ -80,43 +81,49 @@ def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
     for message in reversed(messages):
-        print(f'{Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
-    print(f'\n {Fore.BLUE}>{Fore.RESET} ', end='')
+        print(f'\r{Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
+    print(f'\r\n {Fore.BLUE}>{Fore.RESET} ', end='')
 
 @bot.event
 async def on_ready():
     print('Initiated HaydBot')
 
-    global menu, guild, channel
+    global menu, guild, channel, scroll
     while True:
         if menu == 'guilds':
             guild, menu = load_guilds()
         if menu == 'channels':
             channel, menu = load_channels(guild)
         elif menu == 'messaging':
-            load_msgs(await channel.history(limit=10).flatten(), channel)
-            input_text = await ainput('')
-            if input_text[0] == '\\':
-                args = input_text[1:].split()
-                if args[0] == 'q':
-                    await bot.close()
-                    break
-                if args[0] == 'c':
-                    menu = 'channels'
-                if args[0] == 'g':
-                    menu = 'guilds'
-            else:
+            load_msgs((await channel.history(limit=10+scroll).flatten())[scroll:], channel)
+            input_char = await agetch()
+            if input_char == 'q':
+                await bot.close()
+                break
+            elif input_char == 'a':
+                menu = 'channels'
+            elif input_char == 'w':
+                scroll += 1
+            elif input_char == 's':
+                scroll -= 1
+                if scroll <= 0: scroll = 0
+            elif input_char == 't':
+                input_text = await ainput()
                 await channel.send(input_text)
 
 @bot.event
 async def on_message(message):
     global menu, guild
-    if menu == 'messaging':
-        load_msgs(await channel.history(limit=10).flatten(), channel)
+    if menu == 'messaging' and scroll == 0:
+        load_msgs((await channel.history(limit=10+scroll).flatten())[scroll:], channel)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
-        return (await asyncio.get_event_loop().run_in_executor(executor, input, prompt)).rstrip()
+        return (await asyncio.get_event_loop().run_in_executor(executor, input)).rstrip()
+
+async def agetch(prompt: str = '') -> str:
+    with ThreadPoolExecutor(1, 'agetch') as executor:
+        return (await asyncio.get_event_loop().run_in_executor(executor, getch.impl)).rstrip()
 
 def main():
     with open('token.txt', 'r') as token:
