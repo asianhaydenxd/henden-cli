@@ -9,15 +9,39 @@ from colorama import Fore
 
 bot = commands.Bot(command_prefix = 'hb ')
 
-menu = 'messaging'
+getch = Getch()
+menu = 'guilds'
+guild = None
 messages = []
 
-def load_channels():
-    pass
+def load_guilds():
+    selection = 0
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+        for i, guild in enumerate(bot.guilds):
+            if selection == i:
+                print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
+            else:
+                print('  ' + guild.name)
+
+        input_char = getch.impl()
+
+        if input_char == 'd':
+            return bot.guilds[selection], 'messaging'
+
+        if input_char == 'w':
+            selection -= 1
+        if input_char == 's':
+            selection += 1
+        
+        if selection < 0:
+            selection = len(bot.guilds) - 1
+        if selection >= len(bot.guilds):
+            selection = 0
 
 def load_msgs(messages, guild, channel, depth):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-    display_messages = [message for message in messages if message['guild'] == guild and message['channel'] == channel][-depth:]
+    display_messages = [message for message in messages if message['guild'] == guild.name and message['channel'] == channel][-depth:]
     
     print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel}\n')
     for message in display_messages:
@@ -28,12 +52,12 @@ def load_msgs(messages, guild, channel, depth):
 async def on_ready():
     print('Initiated HaydBot')
 
-    guild = input('Server: ')
+    global menu, guild
     channel = input('Channel: ')
     while True:
-        if menu == 'channels':
-            load_channels()
-        if menu == 'messaging':
+        if menu == 'guilds':
+            guild, menu = load_guilds()
+        elif menu == 'messaging':
             load_msgs(messages, guild, channel, 10)
             input_text = await ainput('')
             if input_text == '\\q':
@@ -44,8 +68,10 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    global menu, guild
     messages.append({'guild': message.guild.name, 'channel': message.channel.name, 'author': message.author.name, 'text': message.content})
-    if menu == 'messaging': load_msgs(messages, message.guild.name, message.channel.name, 10)
+    if menu == 'messaging':
+        load_msgs(messages, guild, message.channel.name, 10)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
