@@ -63,7 +63,10 @@ async def on_ready():
                         continue
                         
                     if selection == i:
-                        print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
+                        if guild in [channel.guild for channel in unread_channels]:
+                            print(Fore.BLUE + '> ' + guild.name + ' !' + Fore.RESET)
+                        else:
+                            print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
                     elif guild in [channel.guild for channel in unread_channels]:
                         print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
                     else:
@@ -111,7 +114,10 @@ async def on_ready():
                         continue
                     
                     if selection == i:
-                        print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
+                        if channel in unread_channels:
+                            print(Fore.BLUE + '> ' + channel.name + ' !' + Fore.RESET)
+                        else:
+                            print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
                     elif channel in unread_channels:
                         print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
                     else:
