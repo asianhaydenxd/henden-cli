@@ -124,6 +124,7 @@ async def on_ready():
             guild, menu = load_guilds()
         if menu == 'channels':
             channel, menu = load_channels(guild)
+            scroll = 0
             cache_history = await channel.history().flatten()
         elif menu == 'messaging':
             load_msgs(cache_history, channel)
