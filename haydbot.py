@@ -103,11 +103,10 @@ async def on_ready():
                     break
                 if args[0] == 'c':
                     menu = 'channels'
-                    continue
                 if args[0] == 'g':
                     menu = 'guilds'
-                    continue
-            await channel.send(input_text)
+            else:
+                await channel.send(input_text)
 
 @bot.event
 async def on_message(message):
