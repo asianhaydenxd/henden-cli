@@ -76,9 +76,9 @@ def load_channels(guild):
         if input_char == 's':
             selection += 1
 
-def load_msgs(messages, guild, channel):
+def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-    print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
+    print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}\n')
     for message in reversed(messages):
         print(f'{Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
     print(f'\n {Fore.BLUE}>{Fore.RESET} ', end='')
@@ -94,7 +94,7 @@ async def on_ready():
         if menu == 'channels':
             channel, menu = load_channels(guild)
         elif menu == 'messaging':
-            load_msgs(await channel.history(limit=10).flatten(), guild, channel)
+            load_msgs(await channel.history(limit=10).flatten(), channel)
             input_text = await ainput('')
             if input_text[0] == '\\':
                 args = input_text[1:].split()
@@ -112,7 +112,7 @@ async def on_ready():
 async def on_message(message):
     global menu, guild
     if menu == 'messaging':
-        load_msgs(await channel.history(limit=10).flatten(), guild, channel)
+        load_msgs(await channel.history(limit=10).flatten(), channel)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
