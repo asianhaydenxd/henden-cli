@@ -4,15 +4,20 @@ import discord
 import os
 from discord.ext import commands
 from concurrent.futures import ThreadPoolExecutor
+from getch import Getch
 from colorama import Fore
 
 bot = commands.Bot(command_prefix = 'hb ')
 
+menu = 'messaging'
 messages = []
 
-def load_msgs(messages, channel, depth):
+def load_channels():
+    pass
+
+def load_msgs(messages, guild, channel, depth):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-    display_messages = [message for message in messages if message['channel'] == channel][-depth:]
+    display_messages = [message for message in messages if message['guild'] == guild and message['channel'] == channel][-depth:]
     
     print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel}\n')
     for message in display_messages:
@@ -23,17 +28,24 @@ def load_msgs(messages, channel, depth):
 async def on_ready():
     print('Initiated HaydBot')
 
+    guild = input('Server: ')
     channel = input('Channel: ')
     while True:
-        load_msgs(messages, channel, 10)
-        input_text = await ainput('')
-        general = discord.utils.get(bot.get_all_channels(), name=channel)
-        await general.send(input_text)
+        if menu == 'channels':
+            load_channels()
+        if menu == 'messaging':
+            load_msgs(messages, guild, channel, 10)
+            input_text = await ainput('')
+            if input_text == '\\q':
+                await bot.close()
+                break
+            general = discord.utils.get(bot.get_all_channels(), name=channel)
+            await general.send(input_text)
 
 @bot.event
 async def on_message(message):
-    messages.append({'channel': message.channel.name, 'author': message.author.name, 'text': message.content})
-    load_msgs(messages, message.channel.name, 10)
+    messages.append({'guild': message.guild.name, 'channel': message.channel.name, 'author': message.author.name, 'text': message.content})
+    if menu == 'messaging': load_msgs(messages, message.guild.name, message.channel.name, 10)
 
 async def ainput(prompt: str = '') -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
