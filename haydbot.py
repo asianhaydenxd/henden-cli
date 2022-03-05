@@ -91,6 +91,9 @@ async def on_ready():
             if input_text == '\\q':
                 await bot.close()
                 break
+            if input_text == '\\l':
+                menu = 'channels'
+                continue
             await channel.send(input_text)
 
 @bot.event
