@@ -15,9 +15,10 @@ guild = channel = None
 scroll = 0
 messages = []
 cache_history = []
+unread_channels = []
 
 def load_guilds():
-    global guild
+    global guild, unread_channels
     try:
         selection = bot.guilds.index(guild)
     except ValueError:
@@ -44,6 +45,8 @@ def load_guilds():
                 
             if selection == i:
                 print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
+            elif guild in [channel.guild for channel in unread_channels]:
+                print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
             else:
                 print('  ' + guild.name)
 
@@ -58,7 +61,7 @@ def load_guilds():
             selection += 1
 
 def load_channels(guild):
-    global channel
+    global channel, unread_channels
     try:
         selection = guild.text_channels.index(channel)
     except ValueError:
@@ -85,6 +88,8 @@ def load_channels(guild):
             
             if selection == i:
                 print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
+            elif channel in unread_channels:
+                print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
             else:
                 print('  ' + channel.name)
 
@@ -100,12 +105,12 @@ def load_channels(guild):
         if input_char == 's':
             selection += 1
 
-def load_msgs(messages, channel, notif=None):
+def load_msgs(messages, channel):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
 
-    if notif:
-        print(f'\r{Fore.GREEN}! {notif.guild.name}{Fore.YELLOW}/{Fore.GREEN}{notif.channel.name} {notif.author.name}: {Fore.YELLOW}{notif.content}{Fore.RESET}')
+    if unread_channels:
+        print(f'\r{Fore.GREEN}! {unread_channels[-1].guild.name}{Fore.YELLOW}/{Fore.GREEN}{unread_channels[-1].name} {unread_channels[-1].last_message.author.name}: {Fore.YELLOW}{unread_channels[-1].last_message.content}{Fore.RESET}')
     else:
         print('\r')
 
@@ -124,8 +129,10 @@ async def on_ready():
             guild, menu = load_guilds()
         if menu == 'channels':
             channel, menu = load_channels(guild)
-            scroll = 0
-            cache_history = await channel.history().flatten()
+            if menu == 'messaging':
+                scroll = 0
+                cache_history = await channel.history().flatten()
+                if channel in unread_channels: unread_channels.remove(channel)
         elif menu == 'messaging':
             load_msgs(cache_history, channel)
             input_char = await agetch()
@@ -149,14 +156,15 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    global menu, guild, scroll, cache_history
+    global menu, guild, scroll, cache_history, unread_channels
     if menu == 'messaging':
         if message.channel == channel:
             if scroll > 0: scroll += 1
             cache_history = await channel.history().flatten()
-            load_msgs(cache_history, channel)
-        else:
-            load_msgs(cache_history, channel, notif=message)
+        elif message.channel not in unread_channels:
+            unread_channels.append(message.channel)
+
+        load_msgs(cache_history, channel)
 
 async def ainput() -> str:
     with ThreadPoolExecutor(1, 'ainput') as executor:
