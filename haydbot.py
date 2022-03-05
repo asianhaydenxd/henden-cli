@@ -23,14 +23,25 @@ def load_guilds():
     except ValueError:
         selection = -1
 
+    guild_scroll = 0
+
     while True:
         if selection < 0:
             selection = len(bot.guilds) - 1
         if selection >= len(bot.guilds):
             selection = 0
+        
+        if selection < guild_scroll:
+            guild_scroll = selection
+        if selection > guild_scroll + 10:
+            guild_scroll = selection - 10
             
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+        print(Fore.GREEN + '? Select server\n' + Fore.RESET)
         for i, guild in enumerate(bot.guilds):
+            if i < guild_scroll or i > guild_scroll + 10:
+                continue
+                
             if selection == i:
                 print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
             else:
@@ -53,14 +64,25 @@ def load_channels(guild):
     except ValueError:
         selection = -1
 
+    channel_scroll = 0
+
     while True:
         if selection < 0:
             selection = len(guild.text_channels) - 1
         if selection >= len(guild.text_channels):
             selection = 0
+        
+        if selection < channel_scroll:
+            channel_scroll = selection
+        if selection > channel_scroll + 10:
+            channel_scroll = selection - 10
 
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+        print(Fore.GREEN + '? Select channel\n' + Fore.RESET)
         for i, channel in enumerate(guild.text_channels):
+            if i < channel_scroll or i > channel_scroll + 10:
+                continue
+            
             if selection == i:
                 print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
             else:
