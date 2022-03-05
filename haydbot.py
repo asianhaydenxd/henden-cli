@@ -15,8 +15,18 @@ guild = channel = None
 messages = []
 
 def load_guilds():
-    selection = 0
+    global guild
+    try:
+        selection = bot.guilds.index(guild)
+    except ValueError:
+        selection = -1
+
     while True:
+        if selection < 0:
+            selection = len(bot.guilds) - 1
+        if selection >= len(bot.guilds):
+            selection = 0
+            
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
         for i, guild in enumerate(bot.guilds):
             if selection == i:
@@ -33,15 +43,20 @@ def load_guilds():
             selection -= 1
         if input_char == 's':
             selection += 1
-        
-        if selection < 0:
-            selection = len(bot.guilds) - 1
-        if selection >= len(bot.guilds):
-            selection = 0
 
 def load_channels(guild):
-    selection = 0
+    global channel
+    try:
+        selection = guild.text_channels.index(channel)
+    except ValueError:
+        selection = -1
+
     while True:
+        if selection < 0:
+            selection = len(guild.text_channels) - 1
+        if selection >= len(guild.text_channels):
+            selection = 0
+
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
         for i, channel in enumerate(guild.text_channels):
             if selection == i:
@@ -60,11 +75,6 @@ def load_channels(guild):
             selection -= 1
         if input_char == 's':
             selection += 1
-        
-        if selection < 0:
-            selection = len(guild.text_channels) - 1
-        if selection >= len(guild.text_channels):
-            selection = 0
 
 def load_msgs(messages, guild, channel, depth):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
