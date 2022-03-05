@@ -1,0 +1,2 @@
+# haydbot
+Experimental discord bot
