@@ -90,7 +90,7 @@ def load_msgs(messages, channel, notif=None):
     for message in reversed(messages[scroll:scroll+10]):
         print(f'\r{Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {message.content}')
     
-    print(f'\r\n {Fore.BLUE}>{Fore.RESET} ', end='')
+    print('\r')
 
 @bot.event
 async def on_ready():
@@ -117,7 +117,10 @@ async def on_ready():
                 scroll -= 1
                 if scroll <= 0: scroll = 0
             elif input_char == 't':
+                menu = 'typing'
+                print(f'\r {Fore.BLUE}>{Fore.RESET} ', end='')
                 input_text = await ainput()
+                menu = 'messaging'
                 await channel.send(input_text)
 
 @bot.event
