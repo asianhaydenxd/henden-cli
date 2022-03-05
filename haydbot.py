@@ -4,6 +4,7 @@ import discord
 import os
 from discord.ext import commands
 from concurrent.futures import ThreadPoolExecutor
+from colorama import Fore
 
 bot = commands.Bot(command_prefix = 'hb ')
 
@@ -12,9 +13,11 @@ messages = []
 def load_msgs(messages, channel, depth):
     os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
     display_messages = [message for message in messages if message['channel'] == channel][-depth:]
+    
+    print(f'{Fore.YELLOW}Chatting in{Fore.RESET}: {channel}\n')
     for message in display_messages:
-        print('#%s @%s: %s'%(message['channel'], message['author'], message['text']))
-    print('\n > ', end='')
+        print('%s: %s'%(Fore.BLUE+message['author']+Fore.RESET, message['text']))
+    print(f'\n {Fore.BLUE}>{Fore.RESET} ', end='')
 
 @bot.event
 async def on_ready():
