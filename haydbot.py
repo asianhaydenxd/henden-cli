@@ -136,6 +136,7 @@ async def on_ready():
                 menu = 'channels'
             elif input_char == 'w':
                 scroll += 1
+                if scroll >= len(cache_history) - 10: scroll = len(cache_history) - 10
             elif input_char == 's':
                 scroll -= 1
                 if scroll <= 0: scroll = 0
