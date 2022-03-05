@@ -37,7 +37,7 @@ def load_guilds():
             guild_scroll = selection - 10
             
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-        print(Fore.GREEN + '? Select server\n' + Fore.RESET)
+        print(f'{Fore.GREEN}? Select server {Fore.RESET}({selection+1}/{len(bot.guilds)})\n')
         for i, guild in enumerate(bot.guilds):
             if i < guild_scroll or i > guild_scroll + 10:
                 continue
@@ -78,7 +78,7 @@ def load_channels(guild):
             channel_scroll = selection - 10
 
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-        print(Fore.GREEN + '? Select channel\n' + Fore.RESET)
+        print(f'{Fore.GREEN}? Select channel {Fore.RESET}({selection+1}/{len(guild.text_channels)})\n')
         for i, channel in enumerate(guild.text_channels):
             if i < channel_scroll or i > channel_scroll + 10:
                 continue
