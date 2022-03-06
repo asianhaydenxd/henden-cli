@@ -29,7 +29,7 @@ def load_msgs(messages, channel):
         print('\r')
 
     for message in reversed(messages[scroll:scroll+results]):
-        print(f'\r{Fore.RED if message in unread_messages else Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {Fore.RED if message in unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
+        print(f'\r{Fore.BLUE}{message.author.display_name}{Fore.RESET}: {Fore.RED if message in unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
     
     print('\r')
 
