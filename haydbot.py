@@ -13,6 +13,7 @@ getch = Getch()
 menu = 'guilds'
 guild = channel = None
 scroll = 0
+results = 35
 messages = []
 cache_history = []
 unread_messages = []
@@ -27,7 +28,7 @@ def load_msgs(messages, channel):
     else:
         print('\r')
 
-    for message in reversed(messages[scroll:scroll+10]):
+    for message in reversed(messages[scroll:scroll+results]):
         print(f'\r{Fore.RED if message in unread_messages else Fore.LIGHTBLACK_EX}[{message.created_at}] {Fore.BLUE}{message.author.name}{Fore.RESET}: {Fore.RED if message in unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
     
     print('\r')
@@ -54,13 +55,13 @@ async def on_ready():
                 
                 if selection < guild_scroll:
                     guild_scroll = selection
-                if selection > guild_scroll + 10:
-                    guild_scroll = selection - 10
+                if selection > guild_scroll + results:
+                    guild_scroll = selection - results
                     
                 os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
                 print(f'{Fore.GREEN}? Select server {Fore.RESET}({selection+1}/{len(bot.guilds)})\n')
                 for i, guild in enumerate(bot.guilds):
-                    if i < guild_scroll or i > guild_scroll + 10:
+                    if i < guild_scroll or i > guild_scroll + results:
                         continue
                         
                     if selection == i:
@@ -105,13 +106,13 @@ async def on_ready():
                 
                 if selection < channel_scroll:
                     channel_scroll = selection
-                if selection > channel_scroll + 10:
-                    channel_scroll = selection - 10
+                if selection > channel_scroll + results:
+                    channel_scroll = selection - results
 
                 os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
                 print(f'{Fore.GREEN}? Select channel {Fore.RESET}({selection+1}/{len(guild.text_channels)})\n')
                 for i, channel in enumerate(guild.text_channels):
-                    if i < channel_scroll or i > channel_scroll + 10:
+                    if i < channel_scroll or i > channel_scroll + results:
                         continue
                     
                     if selection == i:
@@ -162,7 +163,7 @@ async def on_ready():
 
             elif input_char == 'w':
                 scroll += 1
-                if scroll >= len(cache_history) - 10: scroll = len(cache_history) - 10
+                if scroll >= len(cache_history) - results: scroll = len(cache_history) - results
             elif input_char == 's':
                 scroll -= 1
                 if scroll <= 0: scroll = 0
