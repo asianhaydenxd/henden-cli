@@ -1,2 +1,2 @@
-# haydbot
-Experimental discord bot
+# henden-cli
+Command line interface for controlling a discord bot
