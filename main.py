@@ -30,20 +30,19 @@ class Client(commands.Cog):
         self.results = RESULTS
 
         self.messages = []
-        self.cache_history = []
         self.unread_messages = []
     
-    def load_msgs(self, messages, channel):
+    def load_msgs(self):
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-        print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
+        print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {self.channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{self.channel.name}')
 
-        if [message for message in self.unread_messages if message.channel != channel]:
-            last_foreign_message = [message for message in self.unread_messages if message.channel != channel][-1]
+        if [message for message in self.unread_messages if message.channel != self.channel]:
+            last_foreign_message = [message for message in self.unread_messages if message.channel != self.channel][-1]
             print(f'\r{Fore.GREEN}! {last_foreign_message.guild.name}{Fore.YELLOW}/{Fore.GREEN}{last_foreign_message.channel.name} {last_foreign_message.author.name}: {Fore.YELLOW}{last_foreign_message.content}{Fore.RESET}')
         else:
             print('\r')
 
-        for message in reversed(messages[self.scroll:self.scroll+self.results]):
+        for message in reversed(self.messages[self.scroll:self.scroll+self.results]):
             color = discord.Color.blue()
             try:
                 for role in reversed(message.author.roles):
@@ -54,6 +53,8 @@ class Client(commands.Cog):
                 print(f'\r\033[38;2;{color.r};{color.g};{color.b}m{message.author.display_name}{Fore.RESET}: {Fore.RED if message in self.unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
         
         print('\r')
+
+    # TODO: create load_guilds and load_channels functions
     
     async def ainput(self) -> str:
         with ThreadPoolExecutor(1, 'ainput') as executor:
@@ -176,10 +177,10 @@ class Client(commands.Cog):
 
                 if self.menu == 'messaging':
                     self.scroll = 0
-                    self.cache_history = await self.channel.history().flatten()
+                    self.messages = await self.channel.history().flatten()
 
             elif self.menu == 'messaging':
-                self.load_msgs(self.cache_history, self.channel)
+                self.load_msgs()
                 input_char = await self.agetch()
                 if input_char == 'q':
                     await bot.close()
@@ -192,7 +193,7 @@ class Client(commands.Cog):
 
                 elif input_char == 'w' or input_char == 'A':
                     self.scroll += 1
-                    if self.scroll >= len(self.cache_history) - self.results: self.scroll = len(self.cache_history) - self.results
+                    if self.scroll >= len(self.messages) - self.results: self.scroll = len(self.messages) - self.results
                 elif input_char == 's' or input_char == 'B':
                     self.scroll -= 1
                     if self.scroll <= 0: self.scroll = 0
@@ -216,9 +217,9 @@ class Client(commands.Cog):
         if self.menu == 'messaging':
             if message.channel == self.channel:
                 if self.scroll > 0: self.scroll += 1
-                self.cache_history = await self.channel.history().flatten()
+                self.messages = await self.channel.history().flatten()
 
-            self.load_msgs(self.cache_history, self.channel)
+            self.load_msgs()
 
 def main():
     bot.add_cog(Client(bot))
