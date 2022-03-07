@@ -107,56 +107,51 @@ class Client(commands.Cog):
 
         while True:
             if self.menu == Menu.GUILD:
-                while True:
-                    self.load_guilds()
+                self.load_guilds()
 
-                    input_char = await self.agetch()
+                input_char = await self.agetch()
 
-                    if input_char == 'd' or input_char == 'C':
-                        self.menu = Menu.CHANNEL
-                        self.channel = self.guild.text_channels[0]
-                        break
+                if input_char == 'd' or input_char == 'C':
+                    self.menu = Menu.CHANNEL
+                    self.channel = self.guild.text_channels[0]
 
-                    if input_char == 'w' or input_char == 'A':
-                        try: self.guild = bot.guilds[bot.guilds.index(self.guild) - 1]
-                        except IndexError: self.guild = bot.guilds[-1]
-                    if input_char == 's' or input_char == 'B':
-                        try: self.guild = bot.guilds[bot.guilds.index(self.guild) + 1]
-                        except IndexError: self.guild = bot.guilds[0]
-                    
-                    if input_char == 'q':
-                        await bot.close()
-                        return
+                if input_char == 'w' or input_char == 'A':
+                    try: self.guild = bot.guilds[bot.guilds.index(self.guild) - 1]
+                    except IndexError: self.guild = bot.guilds[-1]
+                if input_char == 's' or input_char == 'B':
+                    try: self.guild = bot.guilds[bot.guilds.index(self.guild) + 1]
+                    except IndexError: self.guild = bot.guilds[0]
+                
+                if input_char == 'q':
+                    await bot.close()
+                    return
 
             if self.menu == Menu.CHANNEL:
-                while True:
-                    self.load_channels()
+                self.load_channels()
 
-                    input_char = await self.agetch()
+                input_char = await self.agetch()
 
-                    if input_char == 'd' or input_char == 'C':
-                        self.menu = Menu.CHAT
-                        break
-                    if input_char == 'a' or input_char == 'D':
-                        self.menu = Menu.GUILD
-                        break
+                if input_char == 'd' or input_char == 'C':
+                    self.menu = Menu.CHAT
+                if input_char == 'a' or input_char == 'D':
+                    self.menu = Menu.GUILD
 
-                    if input_char == 'w' or input_char == 'A':
-                        try: self.channel = self.guild.text_channels[self.guild.text_channels.index(self.channel) - 1]
-                        except IndexError: self.channel = self.guild.text_channels[-1]
-                    if input_char == 's' or input_char == 'B':
-                        try: self.channel = self.guild.text_channels[self.guild.text_channels.index(self.channel) + 1]
-                        except IndexError: self.channel = self.guild.text_channels[0]
-                    
-                    if input_char == 'q':
-                        await bot.close()
-                        return
+                if input_char == 'w' or input_char == 'A':
+                    try: self.channel = self.guild.text_channels[self.guild.text_channels.index(self.channel) - 1]
+                    except IndexError: self.channel = self.guild.text_channels[-1]
+                if input_char == 's' or input_char == 'B':
+                    try: self.channel = self.guild.text_channels[self.guild.text_channels.index(self.channel) + 1]
+                    except IndexError: self.channel = self.guild.text_channels[0]
+                
+                if input_char == 'q':
+                    await bot.close()
+                    return
 
                 if self.menu == Menu.CHAT:
                     self.scroll = 0
                     self.messages = await self.channel.history().flatten()
 
-            elif self.menu == Menu.CHAT:
+            if self.menu == Menu.CHAT:
                 self.load_msgs()
                 input_char = await self.agetch()
                 if input_char == 'q':
