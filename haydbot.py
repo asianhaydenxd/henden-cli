@@ -9,6 +9,8 @@ from colorama import Fore
 
 bot = commands.Bot(command_prefix = 'hb ')
 
+RESULTS = 8
+
 class Client(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -19,7 +21,7 @@ class Client(commands.Cog):
         self.channel = None
 
         self.scroll = 0
-        self.results = 35
+        self.results = RESULTS
 
         self.messages = []
         self.cache_history = []
