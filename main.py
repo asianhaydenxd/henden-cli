@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from getch import Getch
 from colorama import Fore
 
-bot = commands.Bot(command_prefix = 'hb ')
+bot = commands.Bot(command_prefix = 'hb ', intents=discord.Intents.all())
 
 RESULTS = 8
 
@@ -46,7 +46,14 @@ class Client(commands.Cog):
             print('\r')
 
         for message in reversed(messages[self.scroll:self.scroll+self.results]):
-            print(f'\r{Fore.BLUE}{message.author.display_name}{Fore.RESET}: {Fore.RED if message in self.unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
+            color = discord.Color.blue
+            try:
+                for role in reversed(message.author.roles):
+                    if role.color.value != 0:
+                        color = role.color
+                        break
+            finally:
+                print(f'\r\033[38;2;{color.r};{color.g};{color.b}m{message.author.display_name}{Fore.RESET}: {Fore.RED if message in self.unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
         
         print('\r')
     
