@@ -149,7 +149,7 @@ class Client(commands.Cog):
 
                     if input_char == 'd' or input_char == 'C':
                         self.channel = self.guild.text_channels[self.selection]
-                        self.menu = 'messaging'
+                        self.menu = Menu.CHAT
                         break
                     if input_char == 'a' or input_char == 'D':
                         self.channel = self.guild.text_channels[self.selection]
@@ -165,11 +165,11 @@ class Client(commands.Cog):
                         await bot.close()
                         return
 
-                if self.menu == 'messaging':
+                if self.menu == Menu.CHAT:
                     self.scroll = 0
                     self.messages = await self.channel.history().flatten()
 
-            elif self.menu == 'messaging':
+            elif self.menu == Menu.CHAT:
                 self.load_msgs()
                 input_char = await self.agetch()
                 if input_char == 'q':
@@ -196,7 +196,7 @@ class Client(commands.Cog):
                     self.menu = 'typing'
                     print(f'\r {Fore.BLUE}>{Fore.RESET} ', end='')
                     input_text = await self.ainput()
-                    self.menu = 'messaging'
+                    self.menu = Menu.CHAT
                     if input_text: await self.channel.send(input_text)
 
     @commands.Cog.listener()
@@ -204,7 +204,7 @@ class Client(commands.Cog):
         if message.channel != self.channel and message not in self.unread_messages:
             self.unread_messages.append(message)
 
-        if self.menu == 'messaging':
+        if self.menu == Menu.CHAT:
             if message.channel == self.channel:
                 if self.scroll > 0: self.scroll += 1
                 self.messages = await self.channel.history().flatten()
