@@ -3,6 +3,7 @@ import asyncio
 import discord
 import os
 from discord.ext import commands
+from enum import Enum, auto
 from concurrent.futures import ThreadPoolExecutor
 from getch import Getch
 from colorama import Fore
@@ -11,11 +12,16 @@ bot = commands.Bot(command_prefix = 'hb ', intents=discord.Intents.all())
 
 RESULTS = 8
 
+class Menu(Enum):
+    GUILD = auto()
+    CHANNEL = auto()
+    CHAT = auto()
+
 class Client(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.getch = Getch()
-        self.menu = 'guilds'
+        self.menu = Menu.GUILD
 
         self.guild = None
         self.channel = None
@@ -27,14 +33,6 @@ class Client(commands.Cog):
         self.cache_history = []
         self.unread_messages = []
     
-    async def ainput(self) -> str:
-        with ThreadPoolExecutor(1, 'ainput') as executor:
-            return (await asyncio.get_event_loop().run_in_executor(executor, input)).rstrip()
-
-    async def agetch(self) -> str:
-        with ThreadPoolExecutor(1, 'agetch') as executor:
-            return (await asyncio.get_event_loop().run_in_executor(executor, self.getch.impl)).rstrip()
-
     def load_msgs(self, messages, channel):
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
         print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
@@ -46,7 +44,7 @@ class Client(commands.Cog):
             print('\r')
 
         for message in reversed(messages[self.scroll:self.scroll+self.results]):
-            color = discord.Color.blue
+            color = discord.Color.blue()
             try:
                 for role in reversed(message.author.roles):
                     if role.color.value != 0:
@@ -57,12 +55,20 @@ class Client(commands.Cog):
         
         print('\r')
     
+    async def ainput(self) -> str:
+        with ThreadPoolExecutor(1, 'ainput') as executor:
+            return (await asyncio.get_event_loop().run_in_executor(executor, input)).rstrip()
+
+    async def agetch(self) -> str:
+        with ThreadPoolExecutor(1, 'agetch') as executor:
+            return (await asyncio.get_event_loop().run_in_executor(executor, self.getch.impl)).rstrip()
+    
     @commands.Cog.listener()
     async def on_ready(self):
         print('Initiated HaydBot')
 
         while True:
-            if self.menu == 'guilds':
+            if self.menu == Menu.GUILD:
                 try:
                     selection = bot.guilds.index(self.guild)
                 except ValueError:
@@ -101,7 +107,7 @@ class Client(commands.Cog):
 
                     if input_char == 'd' or input_char == 'C':
                         self.guild = bot.guilds[selection]
-                        self.menu = 'channels'
+                        self.menu = Menu.CHANNEL
                         break
 
                     if input_char == 'w' or input_char == 'A':
@@ -113,7 +119,7 @@ class Client(commands.Cog):
                         await bot.close()
                         return
 
-            if self.menu == 'channels':
+            if self.menu == Menu.CHANNEL:
                 try:
                     selection = self.guild.text_channels.index(self.channel)
                 except ValueError:
@@ -156,7 +162,7 @@ class Client(commands.Cog):
                         break
                     if input_char == 'a' or input_char == 'D':
                         self.channel = self.guild.text_channels[selection]
-                        self.menu = 'guilds'
+                        self.menu = Menu.GUILD
                         break
 
                     if input_char == 'w' or input_char == 'A':
@@ -180,7 +186,7 @@ class Client(commands.Cog):
                     return
                     
                 elif input_char == 'a' or input_char == 'D':
-                    self.menu = 'channels'
+                    self.menu = Menu.CHANNEL
                     for message in [message for message in self.unread_messages if message.channel == self.channel]:
                         self.unread_messages.remove(message)
 
