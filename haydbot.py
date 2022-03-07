@@ -76,14 +76,14 @@ async def on_ready():
 
                 input_char = await agetch()
 
-                if input_char == 'd':
+                if input_char == 'd' or input_char == 'C':
                     guild = bot.guilds[selection]
                     menu = 'channels'
                     break
 
-                if input_char == 'w':
+                if input_char == 'w' or input_char == 'A':
                     selection -= 1
-                if input_char == 's':
+                if input_char == 's' or input_char == 'B':
                     selection += 1
                 
                 if input_char == 'q':
@@ -127,18 +127,18 @@ async def on_ready():
 
                 input_char = await agetch()
 
-                if input_char == 'd':
+                if input_char == 'd' or input_char == 'C':
                     channel = guild.text_channels[selection]
                     menu = 'messaging'
                     break
-                if input_char == 'a':
+                if input_char == 'a' or input_char == 'D':
                     channel = guild.text_channels[selection]
                     menu = 'guilds'
                     break
 
-                if input_char == 'w':
+                if input_char == 'w' or input_char == 'A':
                     selection -= 1
-                if input_char == 's':
+                if input_char == 's' or input_char == 'B':
                     selection += 1
                 
                 if input_char == 'q':
@@ -156,15 +156,15 @@ async def on_ready():
                 await bot.close()
                 return
                 
-            elif input_char == 'a':
+            elif input_char == 'a' or input_char == 'D':
                 menu = 'channels'
                 for message in [message for message in unread_messages if message.channel == channel]:
                     unread_messages.remove(message)
 
-            elif input_char == 'w':
+            elif input_char == 'w' or input_char == 'A':
                 scroll += 1
                 if scroll >= len(cache_history) - results: scroll = len(cache_history) - results
-            elif input_char == 's':
+            elif input_char == 's' or input_char == 'B':
                 scroll -= 1
                 if scroll <= 0: scroll = 0
 
