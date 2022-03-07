@@ -9,198 +9,204 @@ from colorama import Fore
 
 bot = commands.Bot(command_prefix = 'hb ')
 
-getch = Getch()
-menu = 'guilds'
-guild = channel = None
-scroll = 0
-results = 35
-messages = []
-cache_history = []
-unread_messages = []
+class Client(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.getch = Getch()
+        self.menu = 'guilds'
 
-def load_msgs(messages, channel):
-    os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-    print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
+        self.guild = None
+        self.channel = None
 
-    if [message for message in unread_messages if message.channel != channel]:
-        last_foreign_message = [message for message in unread_messages if message.channel != channel][-1]
-        print(f'\r{Fore.GREEN}! {last_foreign_message.guild.name}{Fore.YELLOW}/{Fore.GREEN}{last_foreign_message.channel.name} {last_foreign_message.author.name}: {Fore.YELLOW}{last_foreign_message.content}{Fore.RESET}')
-    else:
-        print('\r')
+        self.scroll = 0
+        self.results = 35
 
-    for message in reversed(messages[scroll:scroll+results]):
-        print(f'\r{Fore.BLUE}{message.author.display_name}{Fore.RESET}: {Fore.RED if message in unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
+        self.messages = []
+        self.cache_history = []
+        self.unread_messages = []
     
-    print('\r')
+    async def ainput(self) -> str:
+        with ThreadPoolExecutor(1, 'ainput') as executor:
+            return (await asyncio.get_event_loop().run_in_executor(executor, input)).rstrip()
 
-@bot.event
-async def on_ready():
-    print('Initiated HaydBot')
+    async def agetch(self) -> str:
+        with ThreadPoolExecutor(1, 'agetch') as executor:
+            return (await asyncio.get_event_loop().run_in_executor(executor, self.getch.impl)).rstrip()
 
-    global menu, guild, channel, scroll, cache_history
-    while True:
-        if menu == 'guilds':
-            try:
-                selection = bot.guilds.index(guild)
-            except ValueError:
-                selection = -1
+    def load_msgs(self, messages, channel):
+        os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+        print(f'\r{Fore.YELLOW}Chatting in{Fore.RESET}: {channel.guild.name}{Fore.YELLOW}/{Fore.RESET}{channel.name}')
 
-            guild_scroll = 0
+        if [message for message in self.unread_messages if message.channel != channel]:
+            last_foreign_message = [message for message in self.unread_messages if message.channel != channel][-1]
+            print(f'\r{Fore.GREEN}! {last_foreign_message.guild.name}{Fore.YELLOW}/{Fore.GREEN}{last_foreign_message.channel.name} {last_foreign_message.author.name}: {Fore.YELLOW}{last_foreign_message.content}{Fore.RESET}')
+        else:
+            print('\r')
 
-            while True:
-                if selection < 0:
-                    selection = len(bot.guilds) - 1
-                if selection >= len(bot.guilds):
-                    selection = 0
-                
-                if selection < guild_scroll:
-                    guild_scroll = selection
-                if selection > guild_scroll + results:
-                    guild_scroll = selection - results
+        for message in reversed(messages[self.scroll:self.scroll+self.results]):
+            print(f'\r{Fore.BLUE}{message.author.display_name}{Fore.RESET}: {Fore.RED if message in self.unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
+        
+        print('\r')
+    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print('Initiated HaydBot')
+
+        while True:
+            if self.menu == 'guilds':
+                try:
+                    selection = bot.guilds.index(self.guild)
+                except ValueError:
+                    selection = -1
+
+                guild_scroll = 0
+
+                while True:
+                    if selection < 0:
+                        selection = len(bot.guilds) - 1
+                    if selection >= len(bot.guilds):
+                        selection = 0
                     
-                os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-                print(f'{Fore.GREEN}? Select server {Fore.RESET}({selection+1}/{len(bot.guilds)})\n')
-                for i, guild in enumerate(bot.guilds):
-                    if i < guild_scroll or i > guild_scroll + results:
-                        continue
+                    if selection < guild_scroll:
+                        guild_scroll = selection
+                    if selection > guild_scroll + self.results:
+                        guild_scroll = selection - self.results
                         
-                    if selection == i:
-                        if guild in [message.guild for message in unread_messages]:
-                            print(Fore.BLUE + '> ' + Fore.GREEN + guild.name + ' !' + Fore.RESET)
+                    os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+                    print(f'{Fore.GREEN}? Select server {Fore.RESET}({selection+1}/{len(bot.guilds)})\n')
+                    for i, guild in enumerate(bot.guilds):
+                        if i < guild_scroll or i > guild_scroll + self.results:
+                            continue
+                            
+                        if selection == i:
+                            if guild in [message.guild for message in self.unread_messages]:
+                                print(Fore.BLUE + '> ' + Fore.GREEN + guild.name + ' !' + Fore.RESET)
+                            else:
+                                print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
+                        elif guild in [message.guild for message in self.unread_messages]:
+                            print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
                         else:
-                            print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
-                    elif guild in [message.guild for message in unread_messages]:
-                        print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
-                    else:
-                        print('  ' + guild.name)
+                            print('  ' + guild.name)
 
-                input_char = await agetch()
+                    input_char = await self.agetch()
 
-                if input_char == 'd' or input_char == 'C':
-                    guild = bot.guilds[selection]
-                    menu = 'channels'
-                    break
+                    if input_char == 'd' or input_char == 'C':
+                        self.guild = bot.guilds[selection]
+                        self.menu = 'channels'
+                        break
 
-                if input_char == 'w' or input_char == 'A':
-                    selection -= 1
-                if input_char == 's' or input_char == 'B':
-                    selection += 1
-                
-                if input_char == 'q':
-                    await bot.close()
-                    return
-
-        if menu == 'channels':
-            try:
-                selection = guild.text_channels.index(channel)
-            except ValueError:
-                selection = -1
-
-            channel_scroll = 0
-
-            while True:
-                if selection < 0:
-                    selection = len(guild.text_channels) - 1
-                if selection >= len(guild.text_channels):
-                    selection = 0
-                
-                if selection < channel_scroll:
-                    channel_scroll = selection
-                if selection > channel_scroll + results:
-                    channel_scroll = selection - results
-
-                os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-                print(f'{Fore.GREEN}? Select channel {Fore.RESET}({selection+1}/{len(guild.text_channels)})\n')
-                for i, channel in enumerate(guild.text_channels):
-                    if i < channel_scroll or i > channel_scroll + results:
-                        continue
+                    if input_char == 'w' or input_char == 'A':
+                        selection -= 1
+                    if input_char == 's' or input_char == 'B':
+                        selection += 1
                     
-                    if selection == i:
-                        if channel in [message.channel for message in unread_messages]:
-                            print(Fore.BLUE + '> ' + Fore.GREEN + channel.name + ' !' + Fore.RESET)
+                    if input_char == 'q':
+                        await bot.close()
+                        return
+
+            if self.menu == 'channels':
+                try:
+                    selection = self.guild.text_channels.index(self.channel)
+                except ValueError:
+                    selection = -1
+
+                channel_scroll = 0
+
+                while True:
+                    if selection < 0:
+                        selection = len(self.guild.text_channels) - 1
+                    if selection >= len(self.guild.text_channels):
+                        selection = 0
+                    
+                    if selection < channel_scroll:
+                        channel_scroll = selection
+                    if selection > channel_scroll + self.results:
+                        channel_scroll = selection - self.results
+
+                    os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
+                    print(f'{Fore.GREEN}? Select channel {Fore.RESET}({selection+1}/{len(self.guild.text_channels)})\n')
+                    for i, channel in enumerate(self.guild.text_channels):
+                        if i < channel_scroll or i > channel_scroll + self.results:
+                            continue
+                        
+                        if selection == i:
+                            if channel in [message.channel for message in self.unread_messages]:
+                                print(Fore.BLUE + '> ' + Fore.GREEN + channel.name + ' !' + Fore.RESET)
+                            else:
+                                print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
+                        elif channel in [message.channel for message in self.unread_messages]:
+                            print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
                         else:
-                            print(Fore.BLUE + '> ' + channel.name + Fore.RESET)
-                    elif channel in [message.channel for message in unread_messages]:
-                        print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
-                    else:
-                        print('  ' + channel.name)
+                            print('  ' + channel.name)
 
-                input_char = await agetch()
+                    input_char = await self.agetch()
 
-                if input_char == 'd' or input_char == 'C':
-                    channel = guild.text_channels[selection]
-                    menu = 'messaging'
-                    break
-                if input_char == 'a' or input_char == 'D':
-                    channel = guild.text_channels[selection]
-                    menu = 'guilds'
-                    break
+                    if input_char == 'd' or input_char == 'C':
+                        self.channel = self.guild.text_channels[selection]
+                        self.menu = 'messaging'
+                        break
+                    if input_char == 'a' or input_char == 'D':
+                        self.channel = self.guild.text_channels[selection]
+                        self.menu = 'guilds'
+                        break
 
-                if input_char == 'w' or input_char == 'A':
-                    selection -= 1
-                if input_char == 's' or input_char == 'B':
-                    selection += 1
-                
+                    if input_char == 'w' or input_char == 'A':
+                        selection -= 1
+                    if input_char == 's' or input_char == 'B':
+                        selection += 1
+                    
+                    if input_char == 'q':
+                        await bot.close()
+                        return
+
+                if self.menu == 'messaging':
+                    self.scroll = 0
+                    self.cache_history = await self.channel.history().flatten()
+
+            elif self.menu == 'messaging':
+                self.load_msgs(self.cache_history, self.channel)
+                input_char = await self.agetch()
                 if input_char == 'q':
                     await bot.close()
                     return
+                    
+                elif input_char == 'a' or input_char == 'D':
+                    self.menu = 'channels'
+                    for message in [message for message in self.unread_messages if message.channel == self.channel]:
+                        self.unread_messages.remove(message)
 
-            if menu == 'messaging':
-                scroll = 0
-                cache_history = await channel.history().flatten()
+                elif input_char == 'w' or input_char == 'A':
+                    self.scroll += 1
+                    if self.scroll >= len(self.cache_history) - self.results: self.scroll = len(self.cache_history) - self.results
+                elif input_char == 's' or input_char == 'B':
+                    self.scroll -= 1
+                    if self.scroll <= 0: self.scroll = 0
 
-        elif menu == 'messaging':
-            load_msgs(cache_history, channel)
-            input_char = await agetch()
-            if input_char == 'q':
-                await bot.close()
-                return
-                
-            elif input_char == 'a' or input_char == 'D':
-                menu = 'channels'
-                for message in [message for message in unread_messages if message.channel == channel]:
-                    unread_messages.remove(message)
+                elif ord(input_char) == 27:
+                    for message in [message for message in self.unread_messages if message.channel == self.channel]:
+                        self.unread_messages.remove(message)
 
-            elif input_char == 'w' or input_char == 'A':
-                scroll += 1
-                if scroll >= len(cache_history) - results: scroll = len(cache_history) - results
-            elif input_char == 's' or input_char == 'B':
-                scroll -= 1
-                if scroll <= 0: scroll = 0
+                elif input_char == 't':
+                    self.menu = 'typing'
+                    print(f'\r {Fore.BLUE}>{Fore.RESET} ', end='')
+                    input_text = await self.ainput()
+                    self.menu = 'messaging'
+                    if input_text: await self.channel.send(input_text)
 
-            elif ord(input_char) == 27:
-                for message in [message for message in unread_messages if message.channel == channel]:
-                    unread_messages.remove(message)
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.channel != self.channel and message not in self.unread_messages:
+            self.unread_messages.append(message)
 
-            elif input_char == 't':
-                menu = 'typing'
-                print(f'\r {Fore.BLUE}>{Fore.RESET} ', end='')
-                input_text = await ainput()
-                menu = 'messaging'
-                if input_text: await channel.send(input_text)
+        if self.menu == 'messaging':
+            if message.channel == self.channel:
+                if self.scroll > 0: self.scroll += 1
+                self.cache_history = await self.channel.history().flatten()
 
-@bot.event
-async def on_message(message):
-    global menu, guild, scroll, cache_history, unread_messages
-    if message.channel != channel and message not in unread_messages:
-        unread_messages.append(message)
-
-    if menu == 'messaging':
-        if message.channel == channel:
-            if scroll > 0: scroll += 1
-            cache_history = await channel.history().flatten()
-
-        load_msgs(cache_history, channel)
-
-async def ainput() -> str:
-    with ThreadPoolExecutor(1, 'ainput') as executor:
-        return (await asyncio.get_event_loop().run_in_executor(executor, input)).rstrip()
-
-async def agetch() -> str:
-    with ThreadPoolExecutor(1, 'agetch') as executor:
-        return (await asyncio.get_event_loop().run_in_executor(executor, getch.impl)).rstrip()
+            self.load_msgs(self.cache_history, self.channel)
 
 def main():
+    bot.add_cog(Client(bot))
     with open('token.txt', 'r') as token:
         bot.run(token.read())
     
