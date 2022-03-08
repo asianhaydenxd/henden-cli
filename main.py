@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import asyncio
 import discord
-import os
+import os # plan to remove
+import curses
 from discord.ext import commands
 from enum import Enum, auto
 from concurrent.futures import ThreadPoolExecutor
-from getch import Getch
-from colorama import Fore
+from getch import Getch # plan to remove
+from colorama import Fore # plan to remove
 
 bot = commands.Bot(command_prefix = 'hb ', intents=discord.Intents.all())
 
@@ -31,6 +32,12 @@ class Client(commands.Cog):
 
         self.messages = []
         self.unread_messages = []
+
+        self.screen = curses.initscr()
+        self.screen.keypad(True)
+        curses.start_color()
+        curses.cbreak()
+        curses.noecho()
     
     def load_msgs(self):
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
@@ -103,6 +110,13 @@ class Client(commands.Cog):
                 print(Fore.GREEN + '  ' + channel.name + ' !' + Fore.RESET)
             else:
                 print('  ' + channel.name)
+    
+    def end_curses(self):
+        self.screen.keypad(False)
+        curses.nocbreak()
+        curses.echo()
+
+        curses.endwin()
     
     async def ainput(self) -> str:
         with ThreadPoolExecutor(1, 'ainput') as executor:
