@@ -42,7 +42,16 @@ class Client(commands.Cog):
         else:
             print('\r')
 
-        for message in reversed(self.messages[self.scroll:self.scroll+self.results]):
+        lines = []
+        message_index = 0
+        while len(lines) < self.results:
+            if self.messages[message_index] not in self.messages[self.scroll : self.scroll + self.results]:
+                message_index += 1
+                continue
+                
+            message = self.messages[message_index]
+            message_index += 1
+            
             color = discord.Color.greyple()
             try:
                 for role in reversed(message.author.roles):
@@ -52,7 +61,12 @@ class Client(commands.Cog):
             except AttributeError as e:
                 if e.name != 'roles': raise
             finally:
-                print(f'\r\033[38;2;{color.r};{color.g};{color.b}m{message.author.display_name}{Fore.RESET}: {Fore.RED if message in self.unread_messages else Fore.RESET}{message.content}{Fore.RESET}')
+                message_lines = [f'\r\033[38;2;{color.r};{color.g};{color.b}m{message.author.display_name}{Fore.RESET}: {Fore.RED if message in self.unread_messages else Fore.RESET}' + message.content.split('\n')[0]] + message.content.replace('\n', '\n' + ' ' * (len(message.author.display_name) + 2)).split('\n')[1:]
+                message_lines.reverse()
+                lines += message_lines
+
+        print('\n'.join(list(reversed(lines[:self.results]))))
+                
         
         print('\r')
 
