@@ -49,8 +49,9 @@ class Client(commands.Cog):
         while True:
             if self.menu == Menu.GUILD:
                 self.load_guilds()
+                self.screen.refresh()
 
-                input_char = await self.agetch()
+                input_char = self.screen.getch()
 
                 if input_char == 'd' or input_char == 'C':
                     self.menu = Menu.CHANNEL
@@ -135,21 +136,24 @@ class Client(commands.Cog):
             self.load_msgs()
 
     def load_guilds(self):
-        os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
-        print(f'{Fore.GREEN}? Select server {Fore.RESET}({bot.guilds.index(self.guild)+1}/{len(bot.guilds)})\n')
+        self.screen.clear()
+
+        self.screen.addstr(0, 0, f'? Select server ({bot.guilds.index(self.guild)+1}/{len(bot.guilds)})')
         for i, guild in enumerate(bot.guilds):
             if i < bot.guilds.index(self.guild) - self.results/2 or i > bot.guilds.index(self.guild) + self.results/2:
                 continue
                 
             if self.guild == guild:
                 if guild in [message.guild for message in self.unread_messages]:
-                    print(Fore.BLUE + '> ' + Fore.GREEN + guild.name + ' !' + Fore.RESET)
+                    self.screen.addstr(f'> {guild.name} !')
                 else:
-                    print(Fore.BLUE + '> ' + guild.name + Fore.RESET)
+                    self.screen.addstr(f'> {guild.name}')
             elif guild in [message.guild for message in self.unread_messages]:
-                print(Fore.GREEN + '  ' + guild.name + ' !' + Fore.RESET)
+                self.screen.addstr(f'  {guild.name} !')
             else:
-                print('  ' + guild.name)
+                self.screen.addstr(f'  {guild.name}')
+        
+        self.screen.refresh()
 
     def load_channels(self):
         os.system('cls' if os.name == 'nt' else 'clear') # Clear terminal for both Windows and Unix
